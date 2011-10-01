@@ -1,0 +1,80 @@
+<html>
+<head>
+    <title>Test Matchmaking</title>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"> </script>
+
+<script>
+    var updating = false;
+
+    var next_id = 1000;   
+
+    var users = [];
+
+    var join_closure = function( joiner )
+    {
+        return function( data )
+        {
+            joiner.waiting = true; 
+        }
+    };
+
+    var create_joiners = function( num_joiners )
+    {
+        for(var i = 0; i < num_joiners; i++)
+        {
+            joiner = { "id": next_id, "has_match": false, "waiting":true }
+            users.splice(users.length,users.length,joiner)
+            next_id = next_id + 1;
+
+            $.ajax({ url: "http://localhost:3000/match/join/" + joiner.id,
+                     success: join_closure( joiner )});
+        } 
+    };   
+
+    var status_closure = function( joiner )
+    {
+        return function( data )
+        {
+            joiner.waiting = false;
+            joiner.has_match = true; 
+        }
+    };
+
+    var poll_status = function( joiner )
+    {
+        if(joiner.waiting)
+        {
+            $.ajax({ url: "http://localhost:3000/match/status/" + joiner.id,
+                     success: status_closure( joiner )});
+        }
+    };
+
+
+    var update = function()
+    {
+
+        for(var user in users)
+        {
+            poll_status( users[user] )            
+        }   
+     
+        $("#statuses").empty();
+        $("#statuses").append("<tr><td>ID</td><td>Waiting</td><td>Has Match</td><td>Opponent</td></tr>");   
+
+        for(var user in users)
+        {
+            $("#statuses").append("<tr><td>" + users[user].id + "</td><td>" + users[user].waiting + "</td><td>" + users[user].has_match + "</td></</tr>");   
+
+        }
+
+    };
+    setInterval(update, 100);
+</script>
+<div>
+    <table id="statuses">
+    </table>
+</div>
+<button type="button" onclick="create_joiners(10);">Add users</button>
+</html>
+
