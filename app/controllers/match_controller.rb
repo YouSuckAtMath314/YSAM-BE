@@ -19,9 +19,9 @@ class MatchController < ApplicationController
         $redis.hset "games", id, oppenent_id
         $redis.hset "games", oppenent_id, id
         guid = Guid.new
-        $redis.hset "channels", id, guid
-        $redis.hset "channels", oppenent_id, guid
-        render :json => {:matched => true, :id => oppenent_id, :guid => guid}
+        $redis.hset "channels", id, guid.to_s
+        $redis.hset "channels", oppenent_id, guid.to_s
+        render :json => {:matched => true, :id => oppenent_id, :guid => guid.to_s}
       else
         render :json => {:matched => false}
       end
