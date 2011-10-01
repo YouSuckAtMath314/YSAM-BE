@@ -23,7 +23,7 @@
     {
         for(var i = 0; i < num_joiners; i++)
         {
-            joiner = { "id": next_id, "has_match": false, "waiting":true, "opponent": 0 }
+            joiner = { "id": next_id, "has_match": false, "waiting":true, "opponent": 0, "guid": ""}
             users.splice(users.length,users.length,joiner)
             next_id = next_id + 1;
 
@@ -32,15 +32,21 @@
         } 
     };   
 
+    var clear_playing = function()
+    {
+        users = users.filter( function(element, index, array){ return !element.has_match; } );
+    };
+
     var status_closure = function( joiner )
     {
         return function( data )
         {
-            if(data.matched)
+            if(!joiner.has_match && data.matched)
             {
                 joiner.waiting = false;
                 joiner.has_match = true; 
                 joiner.opponent = data.id;
+                joiner.guid = data.guid;
             }
         }
     };
@@ -64,11 +70,11 @@
         }   
      
         $("#statuses").empty();
-        $("#statuses").append("<tr><td>ID</td><td>Waiting</td><td>Has Match</td><td>Opponent</td></tr>");   
+        $("#statuses").append("<tr><td>ID</td><td>Waiting</td><td>Has Match</td><td>Opponent</td><td>Guid</td></tr>");   
 
         for(var user in users)
         {
-            $("#statuses").append("<tr><td>" + users[user].id + "</td><td>" + users[user].waiting + "</td><td>" + users[user].has_match + "</td><td>" + users[user].opponent + "</td></</tr>");   
+            $("#statuses").append("<tr><td>" + users[user].id + "</td><td>" + users[user].waiting + "</td><td>" + users[user].has_match + "</td><td>" + users[user].opponent + "</td><td>" + users[user].guid + "</td></tr>");   
 
         }
 
@@ -79,6 +85,7 @@
     <table id="statuses">
     </table>
 </div>
-<button type="button" onclick="create_joiners(10);">Add users</button>
+<button type="button" onclick="create_joiners(19);">Add users</button>
+<button type="button" onclick="clear_playing();">Clear</button>
 </html>
 
