@@ -12,7 +12,7 @@ class MatchController < ApplicationController
         $redis.srem "lobby", id
         oppenent_id = $redis.spop "lobby"
         $redis.hset "games", id, oppenent_id
-        $redis.hset "games", oppenent_id, :id
+        $redis.hset "games", oppenent_id, id
         render :json => {:matched => true, :id => oppenent_id}
       else
         render :json => {:matched => false}
