@@ -1,7 +1,10 @@
 class MatchController < ApplicationController
 
   def join
-    $redis.sadd("lobby", params[:id])
+    id = params[:id]
+    oppenent_id = $redis.hdel "games", id
+    $redis.hdel "games", oppenent_id
+    $redis.sadd "lobby", id
     render :json => {:id => params[:id]}
   end
 
