@@ -1,4 +1,5 @@
 MathDeathMatchService::Application.routes.draw do
+  match 'match/join/:id' => 'match#join'
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
