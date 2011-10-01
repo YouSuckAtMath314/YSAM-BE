@@ -6,16 +6,22 @@ class MatchController < ApplicationController
   end
 
   def status
-    if $redis.sismember "lobby", params[:id]
+    id = params[:id]
+    if $redis.sismember "lobby", id
       if $redis.scard("lobby") > 1
-        $redis.srem "lobby", params[:id]
+        $redis.srem "lobby", id
         oppenent_id = $redis.spop "lobby"
+        $redis.hset "games", id, oppenent_id
+        $redis.hset "games", oppenent_id, :id
         render :json => {:matched => true, :id => oppenent_id}
       else
         render :json => {:matched => false}
       end
-    else # already matched
-      render :json => {:matched => true}
+    elsif $redis.hexists "games", id
+      oppenent_id = $redis.hget "games", id
+      render :json => {:matched => true, :id => oppenent_id}
+    else
+      render :json => {:matched => false}
     end
   end
 end
