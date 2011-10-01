@@ -23,7 +23,7 @@
     {
         for(var i = 0; i < num_joiners; i++)
         {
-            joiner = { "id": next_id, "has_match": false, "waiting":true }
+            joiner = { "id": next_id, "has_match": false, "waiting":true, "opponent": 0 }
             users.splice(users.length,users.length,joiner)
             next_id = next_id + 1;
 
@@ -36,8 +36,12 @@
     {
         return function( data )
         {
-            joiner.waiting = false;
-            joiner.has_match = true; 
+            if(data.matched)
+            {
+                joiner.waiting = false;
+                joiner.has_match = true; 
+                joiner.opponent = data.id;
+            }
         }
     };
 
@@ -64,12 +68,12 @@
 
         for(var user in users)
         {
-            $("#statuses").append("<tr><td>" + users[user].id + "</td><td>" + users[user].waiting + "</td><td>" + users[user].has_match + "</td></</tr>");   
+            $("#statuses").append("<tr><td>" + users[user].id + "</td><td>" + users[user].waiting + "</td><td>" + users[user].has_match + "</td><td>" + users[user].opponent + "</td></</tr>");   
 
         }
 
     };
-    setInterval(update, 100);
+    setInterval(update, 300);
 </script>
 <div>
     <table id="statuses">
