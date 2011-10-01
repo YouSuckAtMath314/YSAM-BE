@@ -27,7 +27,7 @@
             users.splice(users.length,users.length,joiner)
             next_id = next_id + 1;
 
-            $.ajax({ url: "http://localhost:3000/match/join/" + joiner.id,
+            $.ajax({ url: "/match/join/" + joiner.id,
                      success: join_closure( joiner )});
         } 
     };   
@@ -55,7 +55,7 @@
     {
         if(joiner.waiting)
         {
-            $.ajax({ url: "http://localhost:3000/match/status/" + joiner.id,
+            $.ajax({ url: "/match/status/" + joiner.id,
                      success: status_closure( joiner )});
         }
     };
