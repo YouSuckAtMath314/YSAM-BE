@@ -1,6 +1,6 @@
 class MatchController < ApplicationController
 
   def join
-    render :json => {:joined => true}
+    render :json => {:id => 12345}
   end
 end
