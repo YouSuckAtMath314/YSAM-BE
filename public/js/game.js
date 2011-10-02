@@ -130,6 +130,10 @@ var render_charselect = function()
     ctx.drawImage( artindex.background.image, 0,0  );
 
     render_buttons();
+
+    ctx.font = "bold 50px/60px Arial Rounded MT Bold";
+    ctx.fillStyle = "white";
+    ctx.fillText( "Choose a character", 250, 500 );
 };
 
 var do_damage = function( player_index )
