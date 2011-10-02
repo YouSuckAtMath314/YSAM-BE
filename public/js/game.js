@@ -5,7 +5,7 @@ canvas.width = 1024;
 canvas.height = 768;
 document.body.appendChild(canvas);
 
-var theme_song = new Audio("audio/matchtrack.mp3");
+//var theme_song = new Audio("audio/matchtrack.mp3");
 var buttons = [];
 var guid = Math.floor(Math.random()*10000); // HACK for now
 var channel = null;
@@ -63,6 +63,10 @@ var load_audio = function ( audioindex )
     {  
         var sound =  new Audio( audioindex[key].path );
 
+        sound.loaded = false;
+        sound.onload = onLoadClosure( sound ); 
+        sound.src = audioindex[key].path;
+
         audioindex[key]["audio"] = sound;   
     }
 };
@@ -84,7 +88,7 @@ var render_health_bar = function(x, y, health, empty_bar, full_bar)
 {
     var split = Math.floor(full_bar.image.width * health);
     ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
-    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
+    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split - 1, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
 };
 
 var render_avatar = function(avatar_image, x, y, health)
@@ -403,12 +407,14 @@ var reset_intro = function()
     
     buttons.splice( 0, 0, button);
 
+    /*
     theme_song.pause();
     theme_song.volume = 0.35;
     theme_song.currentTime = 0;    
     theme_song.loop = true;
 
     theme_song.play();
+    */
 
     gamestate = 'intro';
 };
