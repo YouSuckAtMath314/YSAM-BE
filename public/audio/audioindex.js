@@ -6,6 +6,9 @@ audioindex = {
 
     "weak": {"path":"audio/weak.mp3"  },
     "pathetic": {"path":"audio/pathetic.mp3"  },
+
+    "ludicrouskill": {"path":"audio/ludicrouskill.mp3"  },
+    "yousuck": {"path":"audio/yousuck.mp3"  },
 }
 
 right_sounds = [ "excellent", "wickedsick", "superb", "outstanding"];

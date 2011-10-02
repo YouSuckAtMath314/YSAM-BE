@@ -5,7 +5,7 @@ canvas.width = 1024;
 canvas.height = 768;
 document.body.appendChild(canvas);
 
-//var theme_song = new Audio("audio/matchtrack.mp3");
+var theme_song = new Audio("audio/matchtrack.mp3");
 var buttons = [];
 var guid = Math.floor(Math.random()*10000); // HACK for now
 var channel = null;
@@ -62,7 +62,6 @@ var load_audio = function ( audioindex )
     for( key in audioindex )
     {  
         var sound =  new Audio( audioindex[key].path );
-
         sound.loaded = false;
         sound.onload = onLoadClosure( sound ); 
         sound.src = audioindex[key].path;
@@ -136,32 +135,39 @@ var render_charselect = function()
     ctx.fillText( "Choose a character", 250, 500 );
 };
 
-
 var do_damage = function( player_index )
 {
-    playerstate[player_index].health -= 0.1;
+    playerstate[player_index].health -= 0.3;
 
-    if(player_index == 1)
+    var gameover = false;
+    if(playerstate[1].health < 0)
     {
-        var soundindex = Math.floor(Math.random() * right_sounds.length);
-        
-        audioindex[right_sounds[soundindex]].audio.play();
-    }
-    else
-    {
-        var soundindex = Math.floor(Math.random() * wrong_sounds.length);
-        
-        audioindex[wrong_sounds[soundindex]].audio.play();
+        victory_state = "win";
+        gameover = true;
+        reset_victory();
     }
 
     if(playerstate[0].health < 0)
     {
-        reset_intro();
+        victory_state = "lose";
+        gameover = true;
+        reset_victory();
     }
-
-    if(playerstate[1].health < 0)
+    if(!gameover)
     {
-        reset_intro();
+        if(player_index == 1)
+        {
+            var soundindex = Math.floor(Math.random() * right_sounds.length);
+            
+            audioindex[right_sounds[soundindex]].audio.volume = 1.0;
+            audioindex[right_sounds[soundindex]].audio.play();
+        }
+        else
+        {
+            var soundindex = Math.floor(Math.random() * wrong_sounds.length);
+            audioindex[wrong_sounds[soundindex]].audio.volume = 1.0;
+            audioindex[wrong_sounds[soundindex]].audio.play();
+        }
     }
 }
 
@@ -399,6 +405,46 @@ var render_intro = function()
     render_buttons();
 };
 
+var reset_victory = function()
+{
+    buttons = [];
+
+    theme_song.pause();
+    
+    if(victory_state == "win")
+    {
+        var image = artindex.results_won; 
+
+        button = {"image": image, 
+                    "x": 138,
+                    "y": 138, 
+                    "width":image.image.width,
+                    "height":image.image.height,
+                    "click":reset_intro };
+        
+        buttons.splice( 0, 0, button);
+
+        audioindex.ludicrouskill.audio.play();
+    }
+    else
+    {
+        var image = artindex.results_lost; 
+
+        button = {"image": image, 
+                    "x": 138,
+                    "y": 138, 
+                    "width":image.image.width,
+                    "height":image.image.height,
+                    "click":reset_intro };
+        
+        buttons.splice( 0, 0, button);
+
+        audioindex.yousuck.audio.play();
+    }
+    gamestate = "victory";
+};
+
+
 var reset_intro = function()
 {
     buttons = [];
@@ -412,14 +458,12 @@ var reset_intro = function()
     
     buttons.splice( 0, 0, button);
 
-    /*
     theme_song.pause();
     theme_song.volume = 0.35;
     theme_song.currentTime = 0;    
     theme_song.loop = true;
 
     theme_song.play();
-    */
 
     gamestate = 'intro';
 };
@@ -565,7 +609,7 @@ var main = function () {
 	var now = Date.now();
 	var delta = now - then;
 
-    if(gamestate == 'intro')
+    if(gamestate == 'intro' || gamestate == 'victory' )
     {
 	    render_intro();
     }
