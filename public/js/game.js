@@ -5,7 +5,7 @@ canvas.width = 1024;
 canvas.height = 768;
 document.body.appendChild(canvas);
 
-var theme_song = new Audio("audio/matchtrack.mp3");
+var theme_song = new Audio("/audio/matchtrack.mp3");
 var buttons = [];
 var guid = Math.floor(Math.random()*10000); // HACK for now
 var channel = null;
@@ -85,6 +85,8 @@ var render_health_bar = function(x, y, health, empty_bar, full_bar)
     console.log("split: " + split);
     console.log("width: " + empty_bar.image.width);
     console.log("height: " + empty_bar.image.height);
+    console.log("x: " + x);
+    console.log("y: " + y);
     ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
     ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
 };
