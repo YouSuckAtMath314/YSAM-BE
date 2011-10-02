@@ -127,12 +127,9 @@ var render_gameplay = function()
 var render_charselect = function()
 {
     ctx.drawImage( artindex.background.image, 0,0  );
+    ctx.drawImage( artindex.choose_fighter.image, 0,0  );
 
     render_buttons();
-
-    ctx.font = "bold 50px/60px Arial Rounded MT Bold";
-    ctx.fillStyle = "white";
-    ctx.fillText( "Choose a character", 250, 500 );
 };
 
 var do_damage = function( player_index )
@@ -352,7 +349,7 @@ var reset_charselect = function()
     image = artindex.avatar_newton; 
     button = {"image": image, 
                 "x": 50,
-                "y": 50, 
+                "y": 100, 
                 "width":image.image.width,
                 "height":image.frame_height,
                 "click": function(){ 
@@ -368,7 +365,7 @@ var reset_charselect = function()
     image = artindex.avatar_archimedes; 
     button = {"image": image, 
                 "x": 325,
-                "y": 50, 
+                "y": 100, 
                 "width":image.image.width,
                 "height":image.frame_height,
                 "click": function(){ 
@@ -383,7 +380,7 @@ var reset_charselect = function()
     image = artindex.avatar_einstein; 
     button = {"image": image, 
                 "x": 550,
-                "y": 50, 
+                "y": 100, 
                 "width":image.image.width,
                 "height":image.frame_height,
                 "click": function(){ 
