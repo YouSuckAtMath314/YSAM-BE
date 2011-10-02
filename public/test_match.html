@@ -28,7 +28,8 @@
             next_id = next_id + 1;
 
             $.ajax({ url: "/match/join/" + joiner.id,
-                     success: join_closure( joiner )});
+                success: join_closure( joiner )});
+            
         } 
     };   
 
@@ -45,7 +46,7 @@
             {
                 joiner.waiting = false;
                 joiner.has_match = true; 
-                joiner.opponent = data.oppenent_id;
+                joiner.opponent = data.opponent_id;
                 joiner.guid = data.guid;
             }
         }
@@ -85,7 +86,7 @@
     <table id="statuses">
     </table>
 </div>
-<button type="button" onclick="create_joiners(19);">Add users</button>
+<button type="button" onclick="create_joiners(20);">Add users</button>
 <button type="button" onclick="clear_playing();">Clear</button>
 </html>
 
