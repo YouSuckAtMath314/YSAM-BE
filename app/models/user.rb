@@ -20,6 +20,7 @@ class User
   end
 
   def params=(p)
+    @params ||= {}
     @params.merge!(p)
   end
 
