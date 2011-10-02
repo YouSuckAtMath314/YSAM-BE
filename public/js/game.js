@@ -91,8 +91,8 @@ var render_health_bar = function(x, y, health, empty_bar, full_bar)
     console.log("x: " + x);
     console.log("y: " + y);
     */
-    ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
-    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
+    ctx.drawImage( full_bar.image, 0, 0, Math.abs(split), Math.abs(full_bar.image.height), Math.abs(x),Math.abs(y), Math.abs(split), Math.abs(full_bar.image.height) );
+    ctx.drawImage( empty_bar.image, Math.abs(split), 0, Math.abs(empty_bar.image.width - split), Math.abs(empty_bar.image.height), Math.abs(x+split), Math.abs(y), Math.abs(empty_bar.image.width - split), Math.abs(empty_bar.image.height) );
 };
 
 var render_avatar = function(avatar_image, x, y, health)
