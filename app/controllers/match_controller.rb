@@ -24,19 +24,31 @@ class MatchController < ApplicationController
       if $redis.scard("lobby") > 1
         $redis.srem "lobby", id
         oppenent_id = $redis.spop "lobby"
+        oppenent = User.find(oppenent_id)
         $redis.hset "games", id, oppenent_id
         $redis.hset "games", oppenent_id, id
         guid = Guid.new.to_s
         $redis.hset "channels", id, guid.to_s
         $redis.hset "channels", oppenent_id, guid.to_s
-        render :json => {:matched => true, :id => oppenent_id, :guid => guid.to_s, :user => user.params}
+        render :json => {:matched => true, 
+                         :id => id,
+                         :oppenent_id => oppenent_id, 
+                         :guid => guid.to_s, 
+                         :user => user.params,
+                         :oppenent => oppenent.params}
       else
         render :json => {:matched => false}
       end
     elsif $redis.hexists "games", id
       oppenent_id = $redis.hget "games", id
+      oppenent = User.find(oppenent_id)
       guid = $redis.hget "channels", id
-      render :json => {:matched => true, :id => oppenent_id, :guid => guid}
+      render :json => {:matched => true, 
+                       :id => id,
+                       :oppenent_id => oppenent_id, 
+                       :guid => guid.to_s, 
+                       :user => user.params,
+                       :oppenent => oppenent.params}
     else
       render :json => {:matched => false}
     end
@@ -66,7 +78,7 @@ class MatchController < ApplicationController
   private
 
   def user_params
-   params.reject{|k| ["id", "controller", "action"].include?(k) }
+   params.reject{|k| ["id", "controller", "action", "callback", "format"].include?(k) }
   end
 
 end
