@@ -7,6 +7,7 @@ class MatchController < ApplicationController
     $redis.hdel "channels", id
     $redis.hdel "channels", opponent_id
     $redis.sadd "lobby", id
+    $redis.set "lobby/connect-time:#{id}", Time.now.to_i
     user = User.find(id)
     if user
       user.params = user_params
@@ -23,7 +24,9 @@ class MatchController < ApplicationController
     if $redis.sismember "lobby", id
       if $redis.scard("lobby") > 1
         $redis.srem "lobby", id
-        opponent_id = $redis.spop "lobby"
+        opponent_id = nil
+        opponent_id = $redis.sort("lobby", :by => "lobby/connect-time:*", :limit => [0,1]).first
+        $redis.srem "lobby", opponent_id
         opponent = User.find(opponent_id)
         $redis.hset "games", id, opponent_id
         $redis.hset "games", opponent_id, id
