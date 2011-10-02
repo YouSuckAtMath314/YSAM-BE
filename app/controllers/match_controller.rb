@@ -3,8 +3,6 @@ class MatchController < ApplicationController
   def join
     id = params[:id]
     oppenent_id = $redis.hdel "games", id
-    user_params = params.reject{|k| ["id", "controller", "action"].include?(k) }
-    logger.debug "user_params = #{user_params.inspect}"
     $redis.hdel "games", oppenent_id
     $redis.hdel "channels", id
     $redis.hdel "channels", oppenent_id
@@ -63,6 +61,12 @@ class MatchController < ApplicationController
   def channels
     channels = $redis.hgetall "channels"
     render :json => {:channels => channels}
+  end
+
+  private
+
+  def user_params
+   params.reject{|k| ["id", "controller", "action"].include?(k) }
   end
 
 end
