@@ -82,6 +82,9 @@ var artloaded = function( artindex )
 var render_health_bar = function(x, y, health, empty_bar, full_bar)
 {
     var split = Math.floor(full_bar.image.width * health);
+    console.log("split: " + split);
+    console.log("width: " + empty_bar.image.width);
+    console.log("height: " + empty_bar.image.height);
     ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
     ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
 };
