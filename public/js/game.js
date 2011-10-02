@@ -88,7 +88,7 @@ var render_health_bar = function(x, y, health, empty_bar, full_bar)
 {
     var split = Math.floor(full_bar.image.width * health);
     ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
-    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split - 1, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
+    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
 };
 
 var render_avatar = function(avatar_image, x, y, health)
@@ -135,6 +135,7 @@ var render_charselect = function()
     ctx.fillStyle = "white";
     ctx.fillText( "Choose a character", 250, 500 );
 };
+
 
 var do_damage = function( player_index )
 {
