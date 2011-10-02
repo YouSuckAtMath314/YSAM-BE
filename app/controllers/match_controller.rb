@@ -14,7 +14,7 @@ class MatchController < ApplicationController
       user = User.new(id, user_params)
     end
     user.save
-    render :json => {:id => params[:id], :user => user.params}
+    render_json({:id => params[:id], :user => user.params})
   end
 
   def status
@@ -37,7 +37,7 @@ class MatchController < ApplicationController
                          :user => user.params,
                          :opponent => opponent.params}
       else
-        render :json => {:matched => false}
+        render_json({:matched => false})
       end
     elsif $redis.hexists "games", id
       opponent_id = $redis.hget "games", id
@@ -50,29 +50,29 @@ class MatchController < ApplicationController
                        :user => user.params,
                        :opponent => opponent.params}
     else
-      render :json => {:matched => false}
+      render_json(:matched => false)
     end
   end
 
   def user
     id = params[:id]
     user = User.find(params[:id])
-    render :json => {:user => user}
+    render_json({:user => user})
   end
 
   def lobby
     members = $redis.smembers "lobby"
-    render :json => {:lobby => members}
+    render_json({:lobby => members})
   end
 
   def games
     games = $redis.hgetall "games"
-    render :json => {:games => games}
+    render_json({:games => games})
   end
 
   def channels
     channels = $redis.hgetall "channels"
-    render :json => {:channels => channels}
+    render_json({:channels => channels})
   end
 
   private
@@ -81,4 +81,10 @@ class MatchController < ApplicationController
    params.reject{|k| ["id", "controller", "action", "callback", "format"].include?(k) }
   end
 
+  def render_json(object)
+    respond_to do |format|
+      format.json{ render :json => object }
+      format.js{ render :json => object, :callback => params[:callback]}
+    end
+  end
 end
