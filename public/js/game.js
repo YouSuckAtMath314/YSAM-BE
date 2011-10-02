@@ -338,10 +338,10 @@ var reset_charselect = function()
 {
     buttons = [];
    
-    image = artindex.newton; 
+    image = artindex.avatar_newton; 
     button = {"image": image, 
-                "x": 200,
-                "y": 200, 
+                "x": 50,
+                "y": 50, 
                 "width":image.image.width,
                 "height":image.frame_height,
                 "click": function(){ 
@@ -354,10 +354,10 @@ var reset_charselect = function()
 
     buttons.splice( 0, 0, button);
 
-    image = artindex.archimedes; 
+    image = artindex.avatar_archimedes; 
     button = {"image": image, 
-                "x": 450,
-                "y": 200, 
+                "x": 325,
+                "y": 50, 
                 "width":image.image.width,
                 "height":image.frame_height,
                 "click": function(){ 
@@ -369,10 +369,10 @@ var reset_charselect = function()
 
     buttons.splice( 0, 0, button);
 
-    image = artindex.einstein; 
+    image = artindex.avatar_einstein; 
     button = {"image": image, 
-                "x": 700,
-                "y": 200, 
+                "x": 550,
+                "y": 50, 
                 "width":image.image.width,
                 "height":image.frame_height,
                 "click": function(){ 
