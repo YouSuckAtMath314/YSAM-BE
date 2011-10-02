@@ -81,7 +81,7 @@ var artloaded = function( artindex )
 
 var render_health_bar = function(x, y, health, empty_bar, full_bar)
 {
-    var split = full_bar.image.width * health;
+    var split = Math.floor(full_bar.image.width * health);
     ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
     ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
 };
@@ -415,7 +415,6 @@ var update_lobby = function(delta)
           $.ajax({ url: "http://localhost:3000/match/status/" + guid + ".js",
                    dataType: "jsonp",
                    success: function(data){ 
-                     console.log(data);
                      if(data.matched) {
                        match_found = true;
                        channel = data.channel;
@@ -491,12 +490,6 @@ var render_buttons = function()
 
 var click_check = function( e, button )
 {
-    console.log("x: " + e.x);
-    console.log("y: " + e.y);
-    console.log("button.x: " + button.x);
-    console.log("button.width: " + button.width);
-    console.log("button.y: " + button.y);
-    console.log("button.height: " + button.height);
     if(e.x < button.x)  
     {
         return false;
