@@ -21,3 +21,4 @@ artindex = {
     "effects_orb_blue" : { "path": "images/effects_orb_blue.png", "frame_height": 140, "named_frames": {} },
     "effects_orb_yellow" : { "path": "images/effects_orb_yellow.png", "frame_height": 140, "named_frames": {} },
 }
+

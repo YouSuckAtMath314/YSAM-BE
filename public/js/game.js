@@ -5,7 +5,7 @@ canvas.width = 1024;
 canvas.height = 768;
 document.body.appendChild(canvas);
 
-var theme_song = new Audio("/audio/matchtrack.mp3");
+var theme_song = new Audio("audio/matchtrack.mp3");
 var buttons = [];
 var guid = Math.floor(Math.random()*10000); // HACK for now
 var channel = null;
@@ -17,6 +17,7 @@ var playerstate = [
 
 var statechange_time = Date.now();
 
+var victory_state = 'win';
 var gamestate = 'loading';
 var gameplay_state = 'selecting';
 var player_image = null;
@@ -46,7 +47,7 @@ var loadart = function ( artindex )
 {
     for( key in artindex )
     {  
-        var image =  new Image();
+        var image = new Image();
 
         image.loaded = false;
         image.onload = onLoadClosure( image ); 
@@ -82,17 +83,8 @@ var artloaded = function( artindex )
 var render_health_bar = function(x, y, health, empty_bar, full_bar)
 {
     var split = Math.floor(full_bar.image.width * health);
-    /*
-    console.log("split: " + split);
-    console.log("width: " + empty_bar.image.width);
-    console.log("height: " + empty_bar.image.height);
-    console.log("full width: " + full_bar.image.width);
-    console.log("full height: " + full_bar.image.height);
-    console.log("x: " + x);
-    console.log("y: " + y);
-    */
-    ctx.drawImage( full_bar.image, 0, 0, Math.abs(split), Math.abs(full_bar.image.height), Math.abs(x),Math.abs(y), Math.abs(split), Math.abs(full_bar.image.height) );
-    ctx.drawImage( empty_bar.image, Math.abs(split), 0, Math.abs(empty_bar.image.width - split), Math.abs(empty_bar.image.height), Math.abs(x+split), Math.abs(y), Math.abs(empty_bar.image.width - split), Math.abs(empty_bar.image.height) );
+    ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
+    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
 };
 
 var render_avatar = function(avatar_image, x, y, health)
@@ -115,8 +107,6 @@ var render_health = function()
 
 var render_gameplay = function()
 {
-    
-
     ctx.drawImage( artindex.background.image, 0,0 );
 
     render_buttons();
@@ -128,7 +118,7 @@ var render_gameplay = function()
     ctx.fillStyle = "rgb(256, 256, 256)";
     ctx.textBaseline = "top";
     ctx.textAlign = "center";
-    ctx.fillText( question.text, 512, 500 );
+    ctx.fillText( question.text, 512, 580 );
 };
 
 var render_charselect = function()
@@ -144,11 +134,25 @@ var do_damage = function( player_index )
 
     if(player_index == 1)
     {
-        audioindex.excellent.audio.play();
+        var soundindex = Math.floor(Math.random() * right_sounds.length);
+        
+        audioindex[right_sounds[soundindex]].audio.play();
     }
     else
     {
-        audioindex.wickedsick.audio.play();
+        var soundindex = Math.floor(Math.random() * wrong_sounds.length);
+        
+        audioindex[wrong_sounds[soundindex]].audio.play();
+    }
+
+    if(playerstate[0].health < 0)
+    {
+        reset_intro();
+    }
+
+    if(playerstate[1].health < 0)
+    {
+        reset_intro();
     }
 }
 
@@ -240,13 +244,13 @@ var place_orbs = function()
         for(var j = 0; j < orb_columns[i].length; j++)
         {
             orb_columns[i][j].x = 312 + i * 80; 
-            orb_columns[i][j].y = 370 - (j * 80); 
+            orb_columns[i][j].y = 450 - (j * 80); 
         }
     }
 
     for(var i in picked_orbs)
     {
-        picked_orbs[i].y = 610;
+        picked_orbs[i].y = 670;
         picked_orbs[i].x = 422 + (i * 80);
     }
 
@@ -269,7 +273,7 @@ var reset_orbs = function()
      
     for(var i = 0; i < 5; i++)
     {
-        for(var j = 0; j < 5; j++)
+        for(var j = 0; j < 6; j++)
         {
             var orb = gen_orb(); 
             
@@ -322,6 +326,7 @@ var reset_gameplay = function()
 
     generate_question();
     set_gameplaystate('selecting');
+
     gamestate = "playing"; 
 };
 
@@ -397,6 +402,13 @@ var reset_intro = function()
                 "click":reset_charselect };
     
     buttons.splice( 0, 0, button);
+
+    theme_song.pause();
+    theme_song.volume = 0.35;
+    theme_song.currentTime = 0;    
+    theme_song.loop = true;
+
+    theme_song.play();
 
     gamestate = 'intro';
 };
@@ -576,4 +588,3 @@ setInterval(main, 300);
 canvas.onclick = canvas_click;
 
 reset_lobby = reset_gameplay;
-theme_song.play();
