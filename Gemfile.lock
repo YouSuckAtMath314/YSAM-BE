@@ -57,12 +57,12 @@ GEM
     mime-types (1.16)
     multi_json (1.0.3)
     polyglot (0.3.2)
-    rack (1.3.3)
+    rack (1.3.4)
     rack-cache (1.0.3)
       rack (>= 0.4)
     rack-mount (0.8.3)
       rack (>= 1.0.0)
-    rack-protection (1.1.1)
+    rack-protection (1.1.2)
       rack
     rack-ssl (1.3.2)
       rack
@@ -100,6 +100,7 @@ GEM
       sass (>= 3.1.4)
       sprockets (~> 2.0.0)
       tilt (~> 1.3.2)
+    shoulda-context (1.0.0.beta1)
     sinatra (1.3.0)
       rack (~> 1.3)
       rack-protection (~> 1.1)
@@ -132,5 +133,6 @@ DEPENDENCIES
   rails (= 3.1.0)
   resque
   sass-rails (~> 3.1.0)
+  shoulda-context
   turn
   uglifier
