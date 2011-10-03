@@ -563,10 +563,10 @@ var render_buttons = function()
 
 var click_check = function( e, button )
 {
-    console.log("x: " + e.x);
-    console.log("y: " + e.y);
-    var x = e.x - $("canvas").offset().left;
-    var y = e.y - $("canvas").offset().top;
+    console.log("x: " + e.pageX);
+    console.log("y: " + e.pageY);
+    var x = e.pageX - $("canvas").offset().left;
+    var y = e.pageY - $("canvas").offset().top;
     if(x < button.x)  
     {
         return false;
