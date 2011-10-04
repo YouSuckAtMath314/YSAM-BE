@@ -22,6 +22,8 @@ var gamestate = 'loading';
 var gameplay_state = 'selecting';
 var player_image = null;
 var enemy_image = null;
+var player_name = null;
+var enemy_name = null;
 var orb_hopper = [];
 var orb_columns= [];
 var orb_colors = [ "R", "G", "B", "Y"];
@@ -83,11 +85,27 @@ var artloaded = function( artindex )
     return isloaded;
 };
 
-var render_health_bar = function(x, y, health, empty_bar, full_bar)
+var render_health_bar = function(x, y, health, empty_bar, full_bar, name, align)
 {
     var split = Math.floor(full_bar.image.width * health);
-    ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
-    ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
+    ctx.font = "14px/14px Arial Rounded MT Bold";
+    ctx.fillStyle = "rgb(256, 256, 256)";
+    ctx.textBaseline = "top";
+    if(align == "right"){
+      ctx.textAlign = "left";
+      ctx.fillText( name, x+5, y-30 );
+    } else {
+      ctx.textAlign = "right";
+      ctx.fillText( name, x + full_bar.image.width-5, y-30 );
+    }
+
+    if(align == "right"){
+      ctx.drawImage( full_bar.image, full_bar.image.width-split, 0, split, full_bar.image.height, x+full_bar.image.width-split,y, split, full_bar.image.height );
+      ctx.drawImage( empty_bar.image, 0, 0, empty_bar.image.width-split, empty_bar.image.height, x, y, empty_bar.image.width-split, empty_bar.image.height );
+    } else {
+      ctx.drawImage( full_bar.image, 0, 0, split, full_bar.image.height, x,y, split, full_bar.image.height );
+      ctx.drawImage( empty_bar.image, split, 0, empty_bar.image.width - split, empty_bar.image.height, x+split, y, empty_bar.image.width - split, empty_bar.image.height );
+    }
 };
 
 var render_avatar = function(avatar_image, x, y, health)
@@ -95,17 +113,23 @@ var render_avatar = function(avatar_image, x, y, health)
     var frame = Math.round( (1 - health) * 4);
     var topy = avatar_image.frame_height * frame;
     var height = Math.min( avatar_image.image.height - topy, avatar_image.frame_height);
-    ctx.drawImage( avatar_image.image, 0, topy , avatar_image.image.width, height, x,y, avatar_image.image.width, height );
+    ctx.shadowOffsetX = 10;
+    ctx.shadowOffsetY = 20;
+    ctx.shadowColor = "rgba(0,0,0,0.30)";
+    ctx.drawImage( avatar_image.image, 0, topy , avatar_image.image.width, height, x,y, avatar_image.image.width+10, height+20);
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = "rgba(0,0,0,0)";
 };
 
 var render_health = function()
 {
-    render_health_bar(0,0, playerstate[0].health, artindex.bg_health_empty, artindex.bg_health_full_red);
+    render_health_bar(130,60, playerstate[0].health, artindex.bg_health_empty, artindex.bg_health_full_red, player_name, "left");
 
-    render_health_bar(canvas.width - artindex.bg_health_empty.image.width ,0, playerstate[1].health, artindex.bg_health_empty, artindex.bg_health_full_blue);
+    render_health_bar(canvas.width - artindex.bg_health_empty.image.width-130 ,60, playerstate[1].health, artindex.bg_health_empty, artindex.bg_health_full_blue, enemy_name, "right");
 
-    render_avatar(player_image, ((300 - player_image.image.width) / 2), 80, playerstate[0].health );
-    render_avatar(enemy_image, (canvas.width - 150) - (enemy_image.image.width / 2), 80, playerstate[1].health );
+    render_avatar(player_image, 5, 2, playerstate[0].health );
+    render_avatar(enemy_image, (canvas.width - 20 - enemy_image.image.width), 2, playerstate[1].health );
 };
 
 var render_gameplay = function()
@@ -121,7 +145,7 @@ var render_gameplay = function()
     ctx.fillStyle = "rgb(256, 256, 256)";
     ctx.textBaseline = "top";
     ctx.textAlign = "center";
-    ctx.fillText( question.text, 512, 580 );
+    ctx.fillText( question.text, 512, 600 );
 };
 
 var render_charselect = function()
@@ -256,13 +280,13 @@ var place_orbs = function()
         for(var j = 0; j < orb_columns[i].length; j++)
         {
             orb_columns[i][j].x = 312 + i * 80; 
-            orb_columns[i][j].y = 450 - (j * 80); 
+            orb_columns[i][j].y = 510 - (j * 80); 
         }
     }
 
     for(var i in picked_orbs)
     {
-        picked_orbs[i].y = 670;
+        picked_orbs[i].y = 680;
         picked_orbs[i].x = 422 + (i * 80);
     }
 
@@ -355,7 +379,9 @@ var reset_charselect = function()
                 "click": function(){ 
                         character_select = "newton"; 
                         player_image = artindex.newton;
+                        player_name = "ISAAC NEWTON";
                         enemy_image = artindex.einstein;
+                        enemy_name = "ALBERT EINSTEIN";
                         reset_lobby();
                     } 
                 };
@@ -371,7 +397,9 @@ var reset_charselect = function()
                 "click": function(){ 
                         character_select = "archimedes"; 
                         player_image = artindex.archimedes;
+                        player_name = "ARCHIMEDES";
                         enemy_image = artindex.einstein;
+                        enemy_name = "ALBERT EINSTEIN";
                         reset_lobby();
                     } };
 
@@ -386,7 +414,9 @@ var reset_charselect = function()
                 "click": function(){ 
                         character_select = "einstein"; 
                         player_image = artindex.einstein;
+                        player_name = "ALBERT EINSTEIN";
                         enemy_image = artindex.archimedes;
+                        enemy_name = "ARCHIMEDES";
                         reset_lobby();
                     } };
 
@@ -492,16 +522,6 @@ var update_lobby = function(delta)
                        match_found = true;
                        channel = data.channel;
                        alert("connected!!!");
-
-                       PUBNUB.subscribe({
-                           channel  : data.guid,
-                           callback : function(message) { alert(message); }
-                       });
-
-                       PUBNUB.publish({
-                           channel  : data.guid,
-                           message : "hello"
-                       });
                      }
                    }
           });
