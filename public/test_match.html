@@ -27,8 +27,9 @@
             users.splice(users.length,users.length,joiner)
             next_id = next_id + 1;
 
-            $.ajax({ url: "http://localhost:3000/match/join/" + joiner.id,
-                     success: join_closure( joiner )});
+            $.ajax({ url: "/match/join/" + joiner.id,
+                success: join_closure( joiner )});
+            
         } 
     };   
 
@@ -45,7 +46,7 @@
             {
                 joiner.waiting = false;
                 joiner.has_match = true; 
-                joiner.opponent = data.id;
+                joiner.opponent = data.opponent_id;
                 joiner.guid = data.guid;
             }
         }
@@ -55,7 +56,7 @@
     {
         if(joiner.waiting)
         {
-            $.ajax({ url: "http://localhost:3000/match/status/" + joiner.id,
+            $.ajax({ url: "/match/status/" + joiner.id,
                      success: status_closure( joiner )});
         }
     };
@@ -85,7 +86,7 @@
     <table id="statuses">
     </table>
 </div>
-<button type="button" onclick="create_joiners(19);">Add users</button>
+<button type="button" onclick="create_joiners(20);">Add users</button>
 <button type="button" onclick="clear_playing();">Clear</button>
 </html>
 

@@ -1,6 +1,11 @@
 MathDeathMatchService::Application.routes.draw do
-  match 'match/join/:id' => 'match#join'
-  match 'match/status/:id' => 'match#status'
+  match 'match/join/:id' => 'match#join', :format => :json
+  match 'match/status/:id' => 'match#status', :format => :json
+  match 'match/lobby' => 'match#lobby', :format => :json
+  match 'match/games' => 'match#games', :format => :json
+  match 'match/channels' => 'match#channels', :format => :json
+  match 'match/user/:id' => 'match#user', :format => :json
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
