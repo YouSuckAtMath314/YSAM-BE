@@ -36,6 +36,59 @@ var orb_colors_map = {
 
 picked_orbs = [];
 
+function GameClock(time_length){
+  this.time_length = time_length;
+  this.time_left = time_length;
+  this.running = false;
+}
+
+GameClock.prototype.reset = function(){
+  this.time_left = this.time_length;
+};
+
+GameClock.prototype.tick = function(){
+  var self = this;
+  setTimeout(function(){
+    self.time_left = self.time_left - 1;
+    if(self.running){
+      if(self.time_left <= 0){
+        self.running = false;
+        if(self.onend){
+          self.onend();
+        }
+      } else {
+        self.tick();
+      }
+    }
+  }, 1000);
+};
+GameClock.prototype.start = function(){
+  this.running = true;
+  this.tick();
+};
+GameClock.prototype.stop = function(){
+  this.running = false;
+};
+GameClock.prototype.minutes = function(){
+  return Math.floor(this.time_left / 60);
+};
+GameClock.prototype.seconds = function(){
+  return (this.time_left % 60);
+};
+GameClock.prototype.zero_pad = function(number, length){
+  var number_with_padding = number + "";
+  while(number_with_padding.length < length){
+    number_with_padding = "0" + number_with_padding;
+  }
+  return number_with_padding;
+}
+GameClock.prototype.display = function(){
+  return (this.zero_pad(this.minutes(), 1) + ":" + this.zero_pad(this.seconds(), 2)); 
+};
+
+
+var game_clock = new GameClock(3*60);
+
 var question = {"text": "", "answer":"" };
 
 var onLoadClosure = function( image )
@@ -132,6 +185,16 @@ var render_health = function()
     render_avatar(enemy_image, (canvas.width - 20 - enemy_image.image.width), 2, playerstate[1].health );
 };
 
+var render_gameclock = function()
+{
+    ctx.drawImage( artindex.fight.image, 470,20 );
+    ctx.font = "28px/28px Arial Rounded MT Bold";
+    ctx.fillStyle = "rgb(255, 255, 0)";
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillText( game_clock.display(), 480, 70);
+}
+
 var render_gameplay = function()
 {
     ctx.drawImage( artindex.background.image, 0,0 );
@@ -139,6 +202,8 @@ var render_gameplay = function()
     render_buttons();
 
     render_health();
+
+    render_gameclock();
   
     //render question 
     ctx.font = "bold 70px/80px Arial Rounded MT Bold";
@@ -234,6 +299,21 @@ var orb_click_closure = function( orb )
     }
 
 };
+
+game_clock.onend = function(){
+  // right now, ties let player one win
+  if(playerstate[0].health >= playerstate[1].health)
+  {
+      victory_state = "win";
+      gameover = true;
+      reset_victory();
+  } else {
+      victory_state = "lose";
+      gameover = true;
+      reset_victory();
+  }
+}
+
 
 var evaluate_answer = function()
 {
@@ -359,6 +439,8 @@ var reset_gameplay = function()
     ];
     
     reset_orbs();
+    game_clock.reset();
+    game_clock.start();
 
     generate_question();
     set_gameplaystate('selecting');
