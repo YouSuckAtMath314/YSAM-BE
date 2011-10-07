@@ -432,6 +432,7 @@ var reset_gameplay = function()
 {
     buttons = [];
     answer_buttons = [];
+    picked_orbs = [];
     
     playerstate = [
         {"health":1.0},
