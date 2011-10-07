@@ -295,6 +295,7 @@ var orb_click_closure = function( orb )
                 set_gameplaystate( "evaluating" );
                 evaluate_answer();
             }
+            place_orbs();
         }
     }
 
@@ -359,15 +360,54 @@ var place_orbs = function()
     {
         for(var j = 0; j < orb_columns[i].length; j++)
         {
-            orb_columns[i][j].x = 312 + i * 80; 
-            orb_columns[i][j].y = 510 - (j * 80); 
+
+            var target_x = 312 + i * 80; 
+            var target_y = 510 - (j * 80); 
+
+            if(!orb_columns[i][j].animations)
+            {
+                orb_columns[i][j].animations = {}
+            }
+            
+            orb_columns[i][j].animations.y = {
+                    "function" : "lerp", 
+                    "start" : orb_columns[i][j].y,
+                    "end" : target_y,
+                    "start_time" : now,
+                    "length" : 500.0,
+                   };
+
+            orb_columns[i][j].animations.x = {
+                    "function" : "lerp", 
+                    "start" : orb_columns[i][j].x,
+                    "end" : target_x,
+                    "start_time" : now,
+                    "length" : 500.0,
+                   };
+
         }
     }
 
     for(var i in picked_orbs)
     {
-        picked_orbs[i].y = 680;
-        picked_orbs[i].x = 422 + (i * 80);
+        var target_y = 680;
+        var target_x = 422 + (i * 80);
+
+        picked_orbs[i].animations.y = {
+                "function" : "lerp", 
+                "start" : picked_orbs[i].y,
+                "end" : target_y,
+                "start_time" : now,
+                "length" : 500.0,
+               };
+
+        picked_orbs[i].animations.x = {
+                "function" : "lerp", 
+                "start" : picked_orbs[i].x,
+                "end" : target_x,
+                "start_time" : now,
+                "length" : 500.0,
+               };
     }
 
 };
@@ -383,6 +423,10 @@ var reset_orbs = function()
             orb_hopper.splice(0,0,i.toString()); 
         }
     }
+    //Just so the top line isn't always replace with itself
+    orb_hopper.push("1");
+    orb_hopper.push("0");
+    orb_hopper.push("5");
 
     orb_columns = [ [],[],[],[],[] ];
 
@@ -396,6 +440,18 @@ var reset_orbs = function()
             orb_columns[i].splice(0,0, orb);
         }
     }
+
+    for(var i = 0; i < 5; i++)
+    {
+        for(var j = 0; j < orb_columns[i].length; j++)
+        {
+            orb_columns[i][j].x = 312 + i * 80; 
+            orb_columns[i][j].y = -100 - (j * 80); 
+        }
+    }
+
+    picked_orbs = [];
+
     place_orbs();
 };
 
@@ -406,13 +462,43 @@ var generate_question = function()
 
     question.text = a1.toString() + " + " + a2.toString() + " = ?";
     question.answer = (a1 + a2).toString();
+    question.reveal = a1.toString() + " + " + a2.toString() + " = " + question.answer; 
     
     return question;
-}
+};
+
+var update_animations = function(delta)
+{
+
+    for(var b in buttons)
+    {
+        var button = buttons[b];
+
+        if(button.animations)
+        {
+            for(var v in button.animations)
+            {
+                var ani = button.animations[v];
+                var t = now - ani.start_time;
+                var progress = t / ani.length;
+            
+                var value = ani.end;
+
+                if(progress < 1.0)
+                {
+                    value = ani.start + ((ani.end - ani.start) * progress);
+                }     
+                
+                button[v] = value;
+
+            }
+        }
+    }
+};
 
 var update_gameplay = function(delta)
 {
-    place_orbs();
+    update_animations();
     if(gameplay_state == 'evaluating' && time_in_gameplaysate() > 1500.0)
     {
 
@@ -707,10 +793,11 @@ var canvas_click = function(e)
 };
 
 var then = Date.now();
+var now = Date.now();
 
 // The main game loop
 var main = function () {
-	var now = Date.now();
+	now = Date.now();
 	var delta = now - then;
 
     if(gamestate == 'intro' || gamestate == 'victory' )
@@ -743,7 +830,7 @@ var main = function () {
 };
 loadart( artindex );
 load_audio( audioindex );
-setInterval(main, 300);
+setInterval(main, 30);
 canvas.onclick = canvas_click;
 
 reset_lobby = reset_gameplay;
