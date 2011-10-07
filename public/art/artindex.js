@@ -29,5 +29,6 @@ artindex = {
     "results_lost" : { "path": "images/effects_results_lost.png", "frame_height": 140, "named_frames": {} },
     "results_won" : { "path": "images/effects_results_won.png", "frame_height": 140, "named_frames": {} },
     "choose_fighter" : { "path": "images/choose_fighter.png", "frame_height": 140, "named_frames": {} },
+    "fight" : { "path": "images/fight.png", "frame_height": 140, "named_frames": {} },
 }
 
