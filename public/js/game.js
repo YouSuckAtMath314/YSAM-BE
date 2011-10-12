@@ -44,7 +44,7 @@ powers = [
     {
         "name": "Mass Impulse",
         "apply": function(attacker_state, enemy_state){ enemy_state.health -= 0.3; },
-        "cost": { "R": 3, "G": 2, "B": 0, "Y": 0 }, 
+        "cost": { "R": 1, "G": 3, "B": 0, "Y": 0 }, 
     },      
     {
         "name": "Brain Drain",
@@ -54,12 +54,12 @@ powers = [
     {
         "name": "Heal",
         "apply": function(attacker_state, enemy_state){ attacker_state.health += 0.3; },
-        "cost": { "R": 3, "G": 0, "B": 3, "Y": 0 }, 
+        "cost": { "R": 0, "G": 3, "B": 0, "Y": 3 }, 
     },      
     {
         "name": "Mass Blast",
         "apply": function(attacker_state, enemy_state){ enemy_state.health -= 0.7; },
-        "cost": { "R": 3, "G": 3, "B": 1, "Y": 1 }, 
+        "cost": { "R": 3, "G": 3, "B": 3, "Y": 3 }, 
     },      
 ];
 
@@ -273,11 +273,8 @@ var render_charselect = function()
 
     render_buttons();
 };
-
-var do_damage = function( player_index )
+var check_for_victory = function()
 {
-    playerstate[player_index].health -= 0.1;
-
     var gameover = false;
     if(playerstate[1].health <= 0)
     {
@@ -292,23 +289,14 @@ var do_damage = function( player_index )
         gameover = true;
         reset_victory();
     }
-    if(!gameover)
-    {
-        if(player_index == 1)
-        {
-            var soundindex = Math.floor(Math.random() * right_sounds.length);
-            
-            audioindex[right_sounds[soundindex]].audio.volume = 1.0;
-            audioindex[right_sounds[soundindex]].audio.play();
-        }
-        else
-        {
-            var soundindex = Math.floor(Math.random() * wrong_sounds.length);
-            audioindex[wrong_sounds[soundindex]].audio.volume = 1.0;
-            audioindex[wrong_sounds[soundindex]].audio.play();
-        }
-    }
     return gameover;
+};
+
+var do_damage = function( player_index )
+{
+    playerstate[player_index].health -= 0.1;
+    
+    return check_for_victory();
 }
 
 var set_gameplaystate = function( state )
@@ -379,10 +367,19 @@ var evaluate_answer = function()
     {
         playerstate[0].power[picked_orbs[0].color] += 1;
         playerstate[0].power[picked_orbs[1].color] += 1;
+
+        var soundindex = Math.floor(Math.random() * right_sounds.length);
+        
+        audioindex[right_sounds[soundindex]].audio.volume = 1.0;
+        audioindex[right_sounds[soundindex]].audio.play();
     }
     else
     {
         gameover = do_damage(0);
+
+        var soundindex = Math.floor(Math.random() * wrong_sounds.length);
+        audioindex[wrong_sounds[soundindex]].audio.volume = 1.0;
+        audioindex[wrong_sounds[soundindex]].audio.play();
     }
     return gameover;
 };
@@ -622,13 +619,16 @@ var powerbutton_click_closure = function( button )
         if(sufficient_power)
         {
             button.power.apply( button.attacker_state, button.enemy_state );
+
+            for(var c in orb_colors)
+            {
+                var color = orb_colors[c];
+                button.attacker_state.power[color] -= button.power.cost[color];
+            } 
+
+            check_for_victory();
         }
 
-        for(var c in orb_colors)
-        {
-            var color = orb_colors[c];
-            button.attacker_state.power[color] -= button.power.cost[color];
-        } 
 
     };
 }
