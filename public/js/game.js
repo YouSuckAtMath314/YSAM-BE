@@ -65,6 +65,10 @@ powers = [
 
 picked_orbs = [];
 
+///
+/// --- Gameclock
+///
+
 function GameClock(time_length){
   this.time_length = time_length;
   this.time_left = time_length;
@@ -115,6 +119,149 @@ GameClock.prototype.display = function(){
   return (this.zero_pad(this.minutes(), 1) + ":" + this.zero_pad(this.seconds(), 2)); 
 };
 
+GameClock.prototype.render = function(){
+
+    ctx.drawImage( artindex.fight.image, 470,20 );
+    ctx.font = "28px/28px Arial Rounded MT Bold";
+    ctx.fillStyle = "rgb(255, 255, 0)";
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillText( this.display(), 480, 70);
+
+};
+
+//
+// --- Button
+//
+
+function Button(image, x, y, width, height){
+
+    this.image = image;
+    this.width = width
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.animations = {};
+}
+
+Button.prototype.render = function()
+{
+    ctx.drawImage( this.image.image, 0,0, this.width, this.height, this.x, this.y, this.width, this.height  );
+
+    if(this.text)
+    {
+        ctx.font = "bold 50px/60px Arial Rounded MT Bold";
+        ctx.fillStyle = "rgb(256, 256, 256)";
+        ctx.textBaseline = "top";
+        ctx.textAlign = "center";
+        ctx.fillText( this.text, this.x + (this.width / 2.0), this.y + (this.height * 0.125), this.width );
+    }
+};
+
+Button.prototype.update = function()
+{
+    for(var v in this.animations)
+    {
+        var ani = this.animations[v];
+        var t = now - ani.start_time;
+        var progress = t / ani.length;
+    
+        var value = ani.end;
+
+        if(progress < 1.0)
+        {
+            value = ani.start + ((ani.end - ani.start) * progress);
+        }     
+        
+        this[v] = value;
+    }
+};
+
+//
+// --- Orb
+//
+
+Orb.prototype = new Button();
+Orb.prototype.constructor = Orb;
+
+function Orb(image, text, width, height, color){
+    Button.call(this, image, 512,-512, width, height)
+    this.color = color
+    this.text = text;
+}
+
+Orb.prototype.click = function()
+{
+    if( gameplay_state == 'selecting' && picked_orbs.indexOf( this ) < 0 )
+    { 
+        picked_orbs.push( this );
+
+        for(var i = 0; i < 5; i++)
+        {
+            var index = orb_columns[i].indexOf(this);
+            if( index >= 0 )
+             {
+                orb_columns[i].splice(index,1);
+                orb_hopper.push(this.text);
+
+                var replacement_orb = gen_orb();
+                orb_columns[i].push(  replacement_orb );
+            }
+        }
+
+        if(picked_orbs.length >= 2)
+        {
+            set_gameplaystate( "evaluating" );
+        }
+        place_orbs();
+    }
+
+};
+
+//
+// --- PowerButton
+//
+
+PowerButton.prototype = new Button();
+PowerButton.prototype.constructor = PowerButton;
+
+function PowerButton(x,y, width, height, power){
+    Button.call(this, null, x, y, width, height)
+    this.power = power;
+}
+
+PowerButton.prototype.render = function()
+{
+    ctx.fillStyle = "rgb(128, 128, 128)";
+    ctx.fillRect( this.x, this.y, this.width, this.height );
+
+    ctx.font = "bold 20px/20px Arial Rounded MT Bold";
+    ctx.fillStyle = "rgb(256, 256, 256)";
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillText( this.power.name, this.x + (10), this.y + (this.height * 0.125), this.width );
+
+    render_power( this.power.cost, this.x + 10, this.y + 50, false);
+
+};
+
+PowerButton.prototype.click = function()
+{
+    var sufficient_power = power_gte( playerstate[0].power, this.power.cost );
+
+    if(sufficient_power)
+    {
+        this.power.apply( playerstate[0], playerstate[1] );
+
+        for(var c in orb_colors)
+        {
+            var color = orb_colors[c];
+            playerstate[0].power[color] -= this.power.cost[color];
+        } 
+
+        check_for_victory();
+    }
+};
 
 var game_clock = new GameClock(3*60);
 
@@ -238,16 +385,6 @@ var render_health = function()
     render_power( playerstate[1].power, canvas.width - 290, 260, true);
 };
 
-var render_gameclock = function()
-{
-    ctx.drawImage( artindex.fight.image, 470,20 );
-    ctx.font = "28px/28px Arial Rounded MT Bold";
-    ctx.fillStyle = "rgb(255, 255, 0)";
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    ctx.fillText( game_clock.display(), 480, 70);
-}
-
 var render_gameplay = function()
 {
     ctx.drawImage( artindex.background.image, 0,0 );
@@ -256,8 +393,7 @@ var render_gameplay = function()
 
     render_health();
 
-    render_gameclock();
-  
+    game_clock.render();
     //render question 
     ctx.font = "bold 70px/80px Arial Rounded MT Bold";
     ctx.fillStyle = "rgb(256, 256, 256)";
@@ -310,38 +446,6 @@ var time_in_gameplaysate = function()
     return Date.now() - statechange_time;
 }
 
-var orb_click_closure = function( orb )
-{
-
-    return function()
-    {
-        if( gameplay_state == 'selecting' && picked_orbs.indexOf( orb ) < 0 )
-        { 
-            picked_orbs.push( orb );
-
-            for(var i = 0; i < 5; i++)
-            {
-                var index = orb_columns[i].indexOf(orb);
-                if( index >= 0 )
-                 {
-                    orb_columns[i].splice(index,1);
-                    orb_hopper.push(orb.text);
-
-                    var replacement_orb = gen_orb();
-                    orb_columns[i].push(  replacement_orb );
-                }
-            }
-
-            if(picked_orbs.length >= 2)
-            {
-                set_gameplaystate( "evaluating" );
-            }
-            place_orbs();
-        }
-    }
-
-};
-
 game_clock.onend = function(){
   // right now, ties let player one win
   if(playerstate[0].health >= playerstate[1].health)
@@ -387,21 +491,13 @@ var evaluate_answer = function()
 var gen_orb = function()
 {
     var color = orb_colors[Math.floor(Math.random() * orb_colors.length)];
-
     
     var pick_index = Math.floor(Math.random() * orb_hopper.length);
     var hopper_pick = orb_hopper[ pick_index ];
     orb_hopper.splice(pick_index, 1);
 
     var image = artindex[orb_colors_map[color]];
-    var orb = { "image": image,
-                "text": hopper_pick.toString(),
-                "width": image.image.width,
-                "height": image.image.height,
-                "color": color
-                };
-
-    orb["click"] = orb_click_closure( orb ); 
+    var orb = new Orb( image, hopper_pick.toString(), image.image.width, image.image.height, color);
 
     buttons.splice(0,0, orb);
 
@@ -440,7 +536,6 @@ var place_orbs = function()
                     "start_time" : now,
                     "length" : 500.0,
                    };
-
         }
     }
 
@@ -546,7 +641,6 @@ var update_animations = function(delta)
                 }     
                 
                 button[v] = value;
-
             }
         }
     }
@@ -555,6 +649,7 @@ var update_animations = function(delta)
 var update_gameplay = function(delta)
 {
     update_animations();
+
     if(gameplay_state == 'evaluating' && time_in_gameplaysate() > 1500.0)
     {
         var gameover = evaluate_answer();
@@ -574,24 +669,8 @@ var update_gameplay = function(delta)
     }
 };
 
-var powerbutton_render_closure = function( button )
-{
-    return function()
-    {
-        ctx.fillStyle = "rgb(128, 128, 128)";
-        ctx.fillRect( button.x, button.y, button.width, button.height );
-
-        ctx.font = "bold 20px/20px Arial Rounded MT Bold";
-        ctx.fillStyle = "rgb(256, 256, 256)";
-        ctx.textBaseline = "top";
-        ctx.textAlign = "left";
-        ctx.fillText( button.text, button.x + (10), button.y + (button.height * 0.125), button.width );
-
-        render_power( button.power.cost, button.x + 10, button.y + 50, false);
-
-    };
-};
-
+//Power1 is greater than or equal to power to power 2
+//Good for telling if 
 var power_gte = function( power1, power2)
 {
     var result = true;
@@ -610,48 +689,17 @@ var power_gte = function( power1, power2)
 
 };
 
-var powerbutton_click_closure = function( button )
-{
-    return function()
-    {
-        var sufficient_power = power_gte( button.attacker_state.power, button.power.cost );
-
-        if(sufficient_power)
-        {
-            button.power.apply( button.attacker_state, button.enemy_state );
-
-            for(var c in orb_colors)
-            {
-                var color = orb_colors[c];
-                button.attacker_state.power[color] -= button.power.cost[color];
-            } 
-
-            check_for_victory();
-        }
-
-
-    };
-}
-
-
 var generate_powerbuttons = function(powers, x, y)
 {
     for(var i in powers)
     {
         var power = powers[i];
 
-        var button = {  "x": x,
-                        "y": y + (90 * i), 
-                        "width":280,
-                        "height":80,
-                        "text": power.name,
-                        "attacker_state": playerstate[0],       
-                        "enemy_state": playerstate[1],       
-                        "power": power
-                    };
-
-        button.render = powerbutton_render_closure(button);
-        button.click = powerbutton_click_closure(button);
+        var button = new PowerButton(   x,
+                                    y + (90 * i), 
+                                    280,
+                                    80,
+                                    power);
 
         buttons.push(button);
     }
@@ -686,54 +734,41 @@ var reset_charselect = function()
     buttons = [];
    
     image = artindex.avatar_newton; 
-    button = {"image": image, 
-                "x": 50,
-                "y": 100, 
-                "width":image.image.width,
-                "height":image.frame_height,
-                "click": function(){ 
+    var button = new Button( image, 50, 100, image.image.width, image.image.height);
+    button.click = function(){ 
                         character_select = "newton"; 
                         player_image = artindex.newton;
                         player_name = "ISAAC NEWTON";
                         enemy_image = artindex.einstein;
                         enemy_name = "ALBERT EINSTEIN";
                         reset_lobby();
-                    } 
-                };
+                    };
 
     buttons.splice( 0, 0, button);
 
     image = artindex.avatar_archimedes; 
-    button = {"image": image, 
-                "x": 325,
-                "y": 100, 
-                "width":image.image.width,
-                "height":image.frame_height,
-                "click": function(){ 
+    var button = new Button( image, 325, 100, image.image.width, image.image.height);
+    button.click = function(){ 
                         character_select = "archimedes"; 
                         player_image = artindex.archimedes;
                         player_name = "ARCHIMEDES";
                         enemy_image = artindex.einstein;
                         enemy_name = "ALBERT EINSTEIN";
                         reset_lobby();
-                    } };
+                     };
 
     buttons.splice( 0, 0, button);
 
     image = artindex.avatar_einstein; 
-    button = {"image": image, 
-                "x": 550,
-                "y": 100, 
-                "width":image.image.width,
-                "height":image.frame_height,
-                "click": function(){ 
+    var button = new Button( image, 550, 100, image.image.width, image.image.height);
+    button.click= function(){ 
                         character_select = "einstein"; 
                         player_image = artindex.einstein;
                         player_name = "ALBERT EINSTEIN";
                         enemy_image = artindex.archimedes;
                         enemy_name = "ARCHIMEDES";
                         reset_lobby();
-                    } };
+                    };
 
     buttons.splice( 0, 0, button);
 
@@ -757,12 +792,8 @@ var reset_victory = function()
     {
         var image = artindex.results_won; 
 
-        button = {"image": image, 
-                    "x": 138,
-                    "y": 138, 
-                    "width":image.image.width,
-                    "height":image.image.height,
-                    "click":reset_intro };
+        var button = new Button( image, 138, 138, image.image.width, image.image.height);
+        button.click = reset_intro;
         
         buttons.splice( 0, 0, button);
 
@@ -771,14 +802,10 @@ var reset_victory = function()
     else
     {
         var image = artindex.results_lost; 
-
-        button = {"image": image, 
-                    "x": 138,
-                    "y": 138, 
-                    "width":image.image.width,
-                    "height":image.image.height,
-                    "click":reset_intro };
         
+        var button = new Button( image, 138, 138, image.image.width, image.image.height);
+        button.click = reset_intro;
+
         buttons.splice( 0, 0, button);
 
         audioindex.yousuck.audio.play();
@@ -790,14 +817,13 @@ var reset_victory = function()
 var reset_intro = function()
 {
     buttons = [];
-    
-    button = {"image": artindex.logo_deathmath_nobuttons, 
-                "x": 138,
-                "y": 138, 
-                "width":artindex.logo_deathmath_nobuttons.image.width,
-                "height":artindex.logo_deathmath_nobuttons.image.height,
-                "click":reset_charselect };
-    
+    var button = new Button(artindex.logo_deathmath_nobuttons, 
+                        138,
+                        138, 
+                        artindex.logo_deathmath_nobuttons.image.width,
+                        artindex.logo_deathmath_nobuttons.image.height);
+    button.click = reset_charselect;
+
     buttons.splice( 0, 0, button);
 
     theme_song.pause();
@@ -876,36 +902,16 @@ var render_buttons = function()
     for( var i = 0; i < buttons.length; i++)
     {
         button = buttons[i]; 
-        if(button.render)
+        if(button.render || button.__proto__.render)
         {
             button.render();
-        }
-        else
-        {
-            if(button.image)
-            {
-                ctx.drawImage( button.image.image, 0,0, button.width, button.height, button.x, button.y, button.width, button.height  );
-            }
-            else
-            {
-                ctx.fillStyle = "rgb(128, 128, 128)";
-                ctx.fillRect( button.x, button.y, button.width, button.height );
-            }
-            if(button.text)
-            {
-                ctx.font = "bold 50px/60px Arial Rounded MT Bold";
-                ctx.fillStyle = "rgb(256, 256, 256)";
-                ctx.textBaseline = "top";
-                ctx.textAlign = "center";
-                ctx.fillText( button.text, button.x + (button.width / 2.0), button.y + (button.height * 0.125), button.width );
-            }
         }
     }
 };
 
 var click_check = function( e, button )
 {
-    var x = e.pageX - $("canvas").offset().left;
+    var x = e.pageX  - $("canvas").offset().left;
     var y = e.pageY - $("canvas").offset().top;
     if(x < button.x)  
     {
