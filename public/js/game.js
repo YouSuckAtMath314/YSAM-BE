@@ -31,35 +31,38 @@ var orb_columns= [];
 var orb_colors = [ "R", "G", "B", "Y"];
 var orb_colors_map = {
      "R": "effects_orb_red",
-     "G": "effects_orb_blue",
-     "B": "effects_orb_green",
-     "Y": "effects_orb_yellow",
+     "G": "effects_orb_green",
+     "B": "effects_orb_blue",
+     "Y": "effects_orb_yellow"
 };
+
+var enemy_ai = null;
 
 powers = [
     {
         "name": "Particle Punch",
-        "apply": function(attacker_state, enemy_state){ enemy_state.health -= 0.1; },
-        "cost": { "R": 2, "G": 0, "B": 0, "Y": 0 }, },      
+        "apply": function(attacker_state, enemy_state){ enemy_state.health -= 0.2; },
+        "cost": { "R": 2, "G": 0, "B": 0, "Y": 0 }       
+    },
     {
         "name": "Mass Impulse",
         "apply": function(attacker_state, enemy_state){ enemy_state.health -= 0.3; },
-        "cost": { "R": 1, "G": 3, "B": 0, "Y": 0 }, 
+        "cost": { "R": 1, "G": 3, "B": 0, "Y": 0 } 
     },      
     {
         "name": "Brain Drain",
         "apply": function(attacker_state, enemy_state){ enemy_state.power.R = 0; },
-        "cost": { "R": 0, "G": 2, "B": 2, "Y": 2 }, 
+        "cost": { "R": 0, "G": 2, "B": 2, "Y": 2 } 
     },      
     {
         "name": "Heal",
         "apply": function(attacker_state, enemy_state){ attacker_state.health += 0.3; },
-        "cost": { "R": 0, "G": 3, "B": 0, "Y": 3 }, 
+        "cost": { "R": 0, "G": 3, "B": 0, "Y": 3 } 
     },      
     {
         "name": "Mass Blast",
         "apply": function(attacker_state, enemy_state){ enemy_state.health -= 0.7; },
-        "cost": { "R": 3, "G": 3, "B": 3, "Y": 3 }, 
+        "cost": { "R": 3, "G": 3, "B": 3, "Y": 3 } 
     },      
 ];
 
@@ -225,14 +228,24 @@ Orb.prototype.click = function()
 PowerButton.prototype = new Button();
 PowerButton.prototype.constructor = PowerButton;
 
-function PowerButton(x,y, width, height, power){
+function PowerButton(x,y, width, height, power, player, enabled){
     Button.call(this, null, x, y, width, height)
     this.power = power;
+    this.is_available = false;
+    this.player = player;
+    this.enabled = enabled;
 }
 
 PowerButton.prototype.render = function()
 {
-    ctx.fillStyle = "rgb(128, 128, 128)";
+    if( this.is_available )
+    {
+        ctx.fillStyle = "rgb(128, 196, 128)";
+    }
+    else
+    {
+        ctx.fillStyle = "rgb(128, 128, 128)";
+    }
     ctx.fillRect( this.x, this.y, this.width, this.height );
 
     ctx.font = "bold 20px/20px Arial Rounded MT Bold";
@@ -245,21 +258,70 @@ PowerButton.prototype.render = function()
 
 };
 
+PowerButton.prototype.update = function( timeDelta )
+{
+    this.is_available = power_gte( this.player.power, this.power.cost );
+};
+
+var apply_attack = function( power, attacker, attackee )
+{
+    power.apply( attacker, attackee );
+
+    for(var c in orb_colors)
+    {
+        var color = orb_colors[c];
+        attacker.power[color] -= power.cost[color];
+    } 
+
+    check_for_victory();
+};
+
 PowerButton.prototype.click = function()
 {
     var sufficient_power = power_gte( playerstate[0].power, this.power.cost );
 
-    if(sufficient_power)
+    if( this.enabled && sufficient_power )
     {
-        this.power.apply( playerstate[0], playerstate[1] );
+        apply_attack(this.power, playerstate[0], playerstate[1] );
+    }
+};
 
-        for(var c in orb_colors)
+function EnemyAI()
+{
+    this.ellapsed_time = 0;
+    this.num_answers = 1;
+    this.num_attackchecks = 0;
+};
+
+EnemyAI.prototype.update = function( delta )
+{
+    this.ellapsed_time += delta;
+
+    if( this.num_answers < (this.ellapsed_time / 10000) )
+    {
+        this.num_answers++;
+
+        for(var i = 0; i < 2; i++)
         {
-            var color = orb_colors[c];
-            playerstate[0].power[color] -= this.power.cost[color];
-        } 
+            var color = orb_colors[Math.floor(Math.random() * orb_colors.length)];
+            playerstate[1].power[color] += 1;
+        }
+    }
 
-        check_for_victory();
+    if( this.num_attackchecks < ((this.ellapsed_time - 5000) / 10000) )
+    {
+        this.num_attackchecks++;
+
+        for(var i in powers)
+        {
+            var power = powers[i];
+
+            var sufficient_power = power_gte( playerstate[1].power, power.cost );
+            if( sufficient_power )
+            {
+                apply_attack( power, playerstate[1], playerstate[0] );
+            }
+        }
     }
 };
 
@@ -526,7 +588,7 @@ var place_orbs = function()
                     "start" : orb_columns[i][j].y,
                     "end" : target_y,
                     "start_time" : now,
-                    "length" : 500.0,
+                    "length" : 500.0
                    };
 
             orb_columns[i][j].animations.x = {
@@ -534,7 +596,7 @@ var place_orbs = function()
                     "start" : orb_columns[i][j].x,
                     "end" : target_x,
                     "start_time" : now,
-                    "length" : 500.0,
+                    "length" : 500.0
                    };
         }
     }
@@ -549,7 +611,7 @@ var place_orbs = function()
                 "start" : picked_orbs[i].y,
                 "end" : target_y,
                 "start_time" : now,
-                "length" : 500.0,
+                "length" : 500.0
                };
 
         picked_orbs[i].animations.x = {
@@ -557,7 +619,7 @@ var place_orbs = function()
                 "start" : picked_orbs[i].x,
                 "end" : target_x,
                 "start_time" : now,
-                "length" : 500.0,
+                "length" : 500.0
                };
     }
 
@@ -646,8 +708,27 @@ var update_animations = function(delta)
     }
 };
 
+var update_updateables = function( delta )
+{
+
+    for(var b in buttons)
+    {
+        var button = buttons[b];
+
+        if( button.update )
+        {
+            button.update( delta );
+        }
+    }
+
+};
+
 var update_gameplay = function(delta)
 {
+    update_updateables(delta);
+
+    enemy_ai.update( delta );
+    
     update_animations();
 
     if(gameplay_state == 'evaluating' && time_in_gameplaysate() > 1500.0)
@@ -689,7 +770,7 @@ var power_gte = function( power1, power2)
 
 };
 
-var generate_powerbuttons = function(powers, x, y)
+var generate_powerbuttons = function(powers, x, y, player, enabled)
 {
     for(var i in powers)
     {
@@ -699,7 +780,8 @@ var generate_powerbuttons = function(powers, x, y)
                                     y + (90 * i), 
                                     280,
                                     80,
-                                    power);
+                                    power,
+                                    player, enabled)
 
         buttons.push(button);
     }
@@ -715,14 +797,16 @@ var reset_gameplay = function()
         {"health":1.0, "power": {"R":0, "G":0, "B":0, "Y":0} },
         {"health":1.0, "power": {"R":0, "G":0, "B":0, "Y":0} }
     ];
-    
+
+    enemy_ai = new EnemyAI();    
+
     reset_orbs();
     game_clock.reset();
     game_clock.start();
 
     generate_question();
-    generate_powerbuttons( powers, 20, 290);
-    generate_powerbuttons( powers, 724, 290);
+    generate_powerbuttons( powers, 20, 290, playerstate[0], true);
+    generate_powerbuttons( powers, 724, 290, playerstate[1], false);
 
     set_gameplaystate('selecting');
 
@@ -828,10 +912,10 @@ var reset_intro = function()
 
     theme_song.pause();
     theme_song.volume = 0.35;
-//  theme_song.currentTime = 0.0;    
+    theme_song.currentTime = 0.0;    
     theme_song.loop = true;
 
-    theme_song.play();
+//    theme_song.play();
 
     gamestate = 'intro';
 };
@@ -949,6 +1033,22 @@ var canvas_click = function(e)
     }
 };
 
+var canvas_onmousedown = function(e)
+{
+    for( var i = 0; i < buttons.length; i++)
+    {
+        button = buttons[i]; 
+        if( click_check(e, button) )
+        {
+            if(button.onmousedown)
+            {
+                button.onmousedown();
+                return;
+            }
+        }
+    }
+};
+
 var then = Date.now();
 var now = Date.now();
 
@@ -988,6 +1088,6 @@ var main = function () {
 loadart( artindex );
 load_audio( audioindex );
 setInterval(main, 30);
-canvas.onclick = canvas_click;
+canvas.onmousedown = canvas_click;
 
 reset_lobby = reset_gameplay;
